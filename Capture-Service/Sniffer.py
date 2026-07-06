@@ -1,3 +1,4 @@
+day1:
 from scapy.all import sniff, IP, TCP, UDP
 
 
@@ -31,3 +32,6 @@ def process_packet(packet):
 if __name__ == "__main__":
     print("Starting packet capture... Press Ctrl+C to stop.\n")
     sniff(prn=process_packet, store=False)
+
+
+
