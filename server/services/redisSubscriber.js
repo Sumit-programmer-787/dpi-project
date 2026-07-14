@@ -1,5 +1,6 @@
 const Redis = require('ioredis');
 const Packet = require('../models/Packet');
+const  { checkForPortScan } = require('./ruleEngine');
 
 const CHANNEL_NAME = 'packets';
 
@@ -22,6 +23,8 @@ function startRedisSubscriber() {
         try {
             const packetData = JSON.parse(message);
             await Packet.create(packetData);
+            await checkForPortScan(packetData);
+
             console.log(`Saved packet: ${packetData.protocol}
                 ${packetData.src_ip} -> ${packetData.dst_ip}`);
             }catch (error) {
