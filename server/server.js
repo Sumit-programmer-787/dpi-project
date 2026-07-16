@@ -1,26 +1,31 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
 const connectDB = require('./db');
 const startSubscriber = require('./services/redisSubscriber');
+const apiRoutes = require('./routes/api');
 
 const app = express();
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5000;
 
 connectDB();
 startSubscriber();
 
 app.use(cors());
 app.use(express.json());
+app.use('/api', apiRoutes);
 
-app.get('/', (req,res) => {
-    res.json({ message: 'DPI server is running'});
+app.get('/', (req, res) => {
+  res.json({ message: 'DPI server is running' });
 });
 
-app.get('/health', (req,res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+}).on('error', (err) => {
+  console.error('LISTEN ERROR:', err);
 });
