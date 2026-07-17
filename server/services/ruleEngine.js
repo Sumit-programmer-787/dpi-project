@@ -8,7 +8,7 @@ const PACKET_RATE_THRESHOLD = 50;
 const PACKET_RATE_WINDOW_MS = 5000;
 const packetRateTracker = new Map();
 
-async function checkForPortScan(packetData) {
+async function checkForPortScan(packetData, io) {
   if (!packetData.flags || !packetData.flags.includes('S')) {
     return;
   }
@@ -26,12 +26,16 @@ async function checkForPortScan(packetData) {
   activity.ports.add(dst_port);
 
   if (activity.ports.size >= PORT_THRESHOLD) {
-    await Alert.create({
+    const alert = await Alert.create({
       type: 'port_scan',
       severity: 'high',
       message: `Possible port scan detected: ${src_ip} attempted connections to ${activity.ports.size} different ports within ${TIME_WINDOW_MS / 1000} seconds`,
       src_ip: src_ip,
     });
+
+    if (io) {
+      io.emit('new_alert', alert);
+    }
 
     console.log(`ALERT: Port scan detected from ${src_ip}`);
 
@@ -39,7 +43,7 @@ async function checkForPortScan(packetData) {
   }
 }
 
-async function checkForTrafficSpike(packetData) {
+async function checkForTrafficSpike(packetData, io) {
   const { src_ip } = packetData;
   const now = Date.now();
 
@@ -53,12 +57,16 @@ async function checkForTrafficSpike(packetData) {
   rate.count += 1;
 
   if (rate.count >= PACKET_RATE_THRESHOLD) {
-    await Alert.create({
+    const alert = await Alert.create({
       type: 'traffic_spike',
       severity: 'medium',
       message: `Traffic spike detected: ${src_ip} sent ${rate.count} packets within ${PACKET_RATE_WINDOW_MS / 1000} seconds`,
       src_ip: src_ip,
     });
+
+    if (io) {
+      io.emit('new_alert', alert);
+    }
 
     console.log(`ALERT: Traffic spike detected from ${src_ip}`);
 

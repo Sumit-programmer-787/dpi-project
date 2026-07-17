@@ -4,7 +4,7 @@ const { checkForPortScan, checkForTrafficSpike } = require('./ruleEngine');
 
 const CHANNEL_NAME = 'packets';
 
-function startRedisSubscriber() {
+function startRedisSubscriber(io) {
   const subscriber = new Redis({
     host: 'localhost',
     port: 6379,
@@ -21,9 +21,13 @@ function startRedisSubscriber() {
   subscriber.on('message', async (channel, message) => {
     try {
       const packetData = JSON.parse(message);
-      await Packet.create(packetData);
-      await checkForPortScan(packetData);
-      await checkForTrafficSpike(packetData);
+
+      const savedPacket = await Packet.create(packetData);
+      io.emit('new_packet', savedPacket);
+
+      await checkForPortScan(packetData, io);
+      await checkForTrafficSpike(packetData, io);
+
       console.log(`Saved packet: ${packetData.protocol} ${packetData.src_ip} -> ${packetData.dst_ip}`);
     } catch (error) {
       console.error('Error saving packet:', error.message);
