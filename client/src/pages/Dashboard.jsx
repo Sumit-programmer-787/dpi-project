@@ -33,6 +33,13 @@ function Dashboard() {
     };
   }, []);
 
+  // hasData distinguishes "connected but nothing has happened yet" from
+  // "actively receiving traffic." This matters because a page that just
+  // shows Status: Connected with an empty table looks the same whether
+  // it's genuinely idle or silently broken -- an explicit waiting state
+  // removes that ambiguity for whoever is looking at the screen.
+  const hasData = packets.length > 0;
+
   return (
     <div>
       <h1>Live Traffic Monitor</h1>
@@ -67,6 +74,14 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
+              {!hasData && (
+                <tr className="waiting-row">
+                  <td colSpan={5}>
+                    <span className="loading-pulse" />
+                    {isConnected ? 'Listening for traffic...' : 'Waiting to connect...'}
+                  </td>
+                </tr>
+              )}
               {packets.map((packet) => (
                 <tr key={packet._id}>
                   <td>{new Date(packet.timestamp).toLocaleTimeString()}</td>
