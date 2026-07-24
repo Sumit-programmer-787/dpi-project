@@ -10,7 +10,10 @@ const {
 const CHANNEL_NAME = 'packets';
 
 function startRedisSubscriber(io) {
-  const subscriber = new Redis({ host: 'localhost', port: 6379 });
+  const subscriber = new Redis({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT || 6379,
+});
 
   subscriber.subscribe(CHANNEL_NAME, (err) => {
     if (err) {
